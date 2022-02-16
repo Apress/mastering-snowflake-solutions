@@ -1,0 +1,37 @@
+create or replace database development;
+
+select current_database();
+
+create or replace table cust_orders (
+  order_id int,
+  first_name string,
+  last_name string,
+  email string,
+  street string,
+  city string
+  );
+
+create or replace warehouse development_wh with
+  warehouse_size='X-SMALL'
+  auto_suspend = 180
+  auto_resume = true
+  initially_suspended=true;
+
+put file://c:\temp\orders*.csv @development.public.%cust_orders;
+
+list @development.public.%cust_orders;
+
+copy into cust_orders
+  from @development.public.%cust_orders
+  file_format = (type = csv)
+  on_error = 'skip_file';
+
+select * from cust_orders where first_name = ‘Ron';
+
+insert into cust_orders values
+  (999,'Clementine','Adamou','cadamou@development.com','10510 Sachs Road','Klenak') ,
+  (9999,'Marlowe','De Anesy','madamouc@development.co.uk','36768 Northfield Plaza','Fangshan');
+
+drop database if exists development;
+
+!exit
